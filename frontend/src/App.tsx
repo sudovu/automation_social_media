@@ -13,6 +13,7 @@ import { MediaLibraryPage } from './pages/MediaLibrary';
 import { TemplatesPage } from './pages/Templates';
 import { ReportsPage } from './pages/Reports';
 import { SettingsPage } from './pages/Settings';
+import { DevelopmentsPage } from './pages/DevelopmentsPage';
 import { SetupWizard } from './pages/SetupWizard';
 import { DashboardStats } from './types';
 import { apiRequest } from './api/client';
@@ -111,6 +112,7 @@ export const App: React.FC = () => {
           {currentTab === 'media' && <MediaLibraryPage />}
           {currentTab === 'templates' && <TemplatesPage />}
           {currentTab === 'reports' && <ReportsPage />}
+          {currentTab === 'developments' && <DevelopmentsPage />}
           {currentTab === 'settings' && (
             <SettingsPage
               isPaused={isPaused}

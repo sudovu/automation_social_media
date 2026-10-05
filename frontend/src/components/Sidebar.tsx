@@ -15,7 +15,8 @@ import {
   ShieldAlert,
   PlayCircle,
   PauseCircle,
-  Sparkles
+  Sparkles,
+  Code2
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -45,6 +46,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'media', label: 'Media Library', icon: Image },
     { id: 'templates', label: 'Templates', icon: FileText },
     { id: 'reports', label: 'Reports', icon: LineChart },
+    { id: 'developments', label: 'Developments', icon: Code2 },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
 

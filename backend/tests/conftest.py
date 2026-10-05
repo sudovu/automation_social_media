@@ -4,13 +4,21 @@ import os
 from typing import AsyncGenerator
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from app.main import app
-from app.database import Base, get_db
+from sqlalchemy.pool import StaticPool
 
-# Use in-memory SQLite for testing
+from app.main import app as main_app
+from app.database import Base, get_db
+import app.models as _app_models  # Ensure all SQLAlchemy models are registered on Base.metadata
+
+# Use in-memory SQLite with StaticPool so all connections share the same memory DB
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 
-test_engine = create_async_engine(TEST_DATABASE_URL, echo=False)
+test_engine = create_async_engine(
+    TEST_DATABASE_URL, 
+    connect_args={"check_same_thread": False}, 
+    poolclass=StaticPool, 
+    echo=False
+)
 TestingSessionLocal = async_sessionmaker(bind=test_engine, class_=AsyncSession, expire_on_commit=False)
 
 @pytest.fixture(scope="session")
@@ -27,6 +35,15 @@ async def prepare_database():
     async with test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
 
+@pytest.fixture
+def session_factory():
+    return TestingSessionLocal
+
+@pytest.fixture
+async def db_session() -> AsyncGenerator[AsyncSession, None]:
+    async with TestingSessionLocal() as session:
+        yield session
+
 async def override_get_db() -> AsyncGenerator[AsyncSession, None]:
     async with TestingSessionLocal() as session:
         try:
@@ -38,10 +55,10 @@ async def override_get_db() -> AsyncGenerator[AsyncSession, None]:
         finally:
             await session.close()
 
-app.dependency_overrides[get_db] = override_get_db
+main_app.dependency_overrides[get_db] = override_get_db
 
 @pytest.fixture
 async def async_client() -> AsyncGenerator[AsyncClient, None]:
-    transport = ASGITransport(app=app)
+    transport = ASGITransport(app=main_app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         yield client
